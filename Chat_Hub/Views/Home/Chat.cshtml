@@ -1,0 +1,117 @@
+﻿@{
+    ViewData["Title"] = "Chat";
+}
+
+@section Styles {
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .chat-container {
+            width: 50%;
+            margin: 50px auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 5px;
+        }
+
+        .chat-header {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            text-align: center;
+            color: #333;
+        }
+
+        .chat-messages {
+            height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            overflow-y: auto;
+            background: #fafafa;
+            margin-bottom: 10px;
+        }
+
+        .chat-input {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+            .chat-input input {
+                flex: 1;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                margin-right: 10px;
+            }
+
+            .chat-input button {
+                padding: 10px 20px;
+                border: none;
+                background-color: #007bff;
+                color: #fff;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+
+                .chat-input button:hover {
+                    background-color: #0056b3;
+                }
+
+        .message {
+            margin-bottom: 10px;
+        }
+
+            .message strong {
+                color: #007bff;
+            }
+    </style>
+}
+
+@section Scripts {
+    @* load signal R library *@
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+
+
+    <script>
+        // creates a connetion with signalR
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chathub")
+            .build();
+
+            // receiving messages
+        connection.on("ReceiveMessage", (user, message) => {
+            const msg = document.createElement('div');
+            msg.classList.add('message');
+            msg.innerHTML = `<strong>${user}</strong>: ${message}`;
+            document.getElementById('messages').appendChild(msg);
+        });
+
+        // start connection and log errors to the console
+        connection.start().catch(err => console.error(err.toString()));
+
+        // sending a message
+        document.getElementById('sendButton').addEventListener('click', () => {
+            const user = document.getElementById('userInput').value;
+            const message = document.getElementById('messageInput').value;
+            connection.invoke('SendMessage', user, message).catch(err => console.error(err.toString()));
+            document.getElementById('messageInput').value = '';
+        });
+    </script>
+}
+
+<div class="chat-container">
+    <div class="chat-header">Chat Application</div>
+    <div id="messages" class="chat-messages"></div>
+    <div class="chat-input">
+        <input type="text" id="userInput" placeholder="Name" />
+        <input type="text" id="messageInput" placeholder="Message" />
+        @* <button id="sendButton">Send</button> *@
+        <button type="button" id="sendButton" class="text-white bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Send</button>
+    </div>
+</div>
